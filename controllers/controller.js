@@ -3,35 +3,34 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 
+
 const createCourse = async (req, res) => {
-    const course = req.body
-
-    const newcourse = await new courseModel({
-        ...course,
+    console.log('body>>>>>>>>', req.body)
+    // console.log(JSON.parse(req.body.sections)[0], req.file.filename)
+    // Object.keys(req.body).forEach(element => {
+    //     console.log(element, '>>>>>>>>>>. ', JSON.parse(req.body[element]))
+    // });
+    const newCourse = new models.newCourseModel({
+        outcomes: JSON.parse(req.body.outcomes),
+        requirements: JSON.parse(req.body.requirements),
+        intended: JSON.parse(req.body.intended),
+        sections: JSON.parse(req.body.sections),
+        landingPageDetails: JSON.parse(req.body.landingDetails),
+        price: JSON.parse(req.body.price),
+        messages: JSON.parse(req.body.messages)
     })
-
-    await newcourse.save()
-        .then(console.log('saved'))
-        .catch(err => console.log('error in saving', err))
+    await newCourse.save()
+    .then(resp=>{console.log('saved', resp),res.send('saved')})
+    
 }
 
 const home = async (req, res) => {
-
-    
-
-    // Run the Python script
-    // pyt.runString('x=1+1;print(x)', null).then(messages => {
-    //     console.log('finished:', messages);
-    // });
-    
-    
     const courses = await models.courseModel.find()
-    //console.log(courses)
     res.send(courses)
 }
 
 const getcourses = async (req, res) => {
-    console.log(req.query.course, 'igli')
+    // console.log(req.query.course, 'igli')
     const courses = await models.courseModel.find({ topic: req.query.course.toLowerCase() })
     console.log(courses)
     res.send(courses)
@@ -59,15 +58,17 @@ const authorization = async (req, res) => {
                 // }
                 const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
 
-                res.send({ status: 'authorised', token:token,userDetails: {
-                    username: user.username,
-                    email: user.email
-                } })
+                res.send({
+                    status: 'authorised', token: token, userDetails: {
+                        username: user.username,
+                        email: user.email
+                    }
+                })
 
             }
             else {
-                
-                res.send({ status: 'unauthorised'})
+
+                res.send({ status: 'unauthorised' })
             }
         }
         else {
@@ -81,15 +82,15 @@ const authorization = async (req, res) => {
         if (user_status.length > 0) {
             // res.send('already exists')
             const user = user_status[0]
-            res.send({ status: 'already exists'})
+            res.send({ status: 'already exists' })
         }
         else {
             // let currentUser = {
             //     name: req.body.username,
             //     email: req.body.email,
             // }
-            const hashedPassword = await bcrypt.hash(req.body.password,10)
-            
+            const hashedPassword = await bcrypt.hash(req.body.password, 10)
+
             const user = new models.usersModel({
                 username: req.body.username,
                 email: req.body.email,
@@ -97,9 +98,10 @@ const authorization = async (req, res) => {
             })
             // const token = jwt.sign(user, process.env.JWT_SECRET_KEY,{expiresIn:'24h'})
             await user.save()
-                .then(result => { console.log('new user added', result);
-                const token = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
-                res.send({ status: 'success', token: token, userDetails:result });
+                .then(result => {
+                    console.log('new user added', result);
+                    const token = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
+                    res.send({ status: 'success', token: token, userDetails: result });
                 })
                 .catch(err => { console.log('error in adding user'); res.send({ status: false, userDetails: {} }); })
 

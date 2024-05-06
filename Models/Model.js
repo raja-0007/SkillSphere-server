@@ -13,6 +13,17 @@ const courseSchema = mongoose.Schema({
     cost: String
 
 })
+
+const newCourseSchema= mongoose.Schema({
+    outcomes:Array,
+    requirements:Array,
+    intended:Array,
+    sections:Array,
+    landingPageDetails:Object,
+    price:String,
+    messages:Object
+})
+
 const categoriesSchema = mongoose.Schema({
     categories:Array
 })
@@ -22,10 +33,11 @@ const usersSchema = mongoose.Schema({
     password:String,
     
 })
+const newCourseModel = new mongoose.model('newCourses', newCourseSchema)
 const categoriesModel = new mongoose.model('categories',categoriesSchema)
 const courseModel = new mongoose.model('courses', courseSchema)
 const usersModel = new mongoose.model('users',usersSchema)
 
 
-const models = {courseModel, categoriesModel, usersModel}
+const models = {courseModel, categoriesModel, usersModel, newCourseModel}
 module.exports = models

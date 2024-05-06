@@ -9,7 +9,11 @@ const cors = require('cors')
 dotenv.config()
 const app = express()
 app.use(bodyParser.json())
-app.use(cors())
+const corsoptions = {
+    origin: '*',
+    optionSuccessStatus: 200
+}
+app.use(cors(corsoptions))
 
 
 app.use('/api/', AppRouter)

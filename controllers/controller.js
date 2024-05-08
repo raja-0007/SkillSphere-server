@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 
 const createCourse = async (req, res) => {
-    console.log('body>>>>>>>>', req.body)
+    // console.log('body>>>>>>>>', req.body)
     // console.log(JSON.parse(req.body.sections)[0], req.file.filename)
     // Object.keys(req.body).forEach(element => {
     //     console.log(element, '>>>>>>>>>>. ', JSON.parse(req.body[element]))
@@ -17,7 +17,8 @@ const createCourse = async (req, res) => {
         sections: JSON.parse(req.body.sections),
         landingPageDetails: JSON.parse(req.body.landingDetails),
         price: JSON.parse(req.body.price),
-        messages: JSON.parse(req.body.messages)
+        messages: JSON.parse(req.body.messages),
+        author:JSON.parse(req.body.author).userDetails
     })
     await newCourse.save()
     .then(resp=>{console.log('saved', resp),res.send('saved')})

@@ -1,7 +1,18 @@
 const models = require('../Models/Model')
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fsPromises = require('fs').promises;
 
+const fs = require('fs');
+
+
+const searchResults = async(req, res)=>{
+    // console.log(req.params.search)
+    const searchString = req.params.search
+    await models.newCourseModel.find({'landingPageDetails.title': { $regex: searchString, $options: 'i' }})
+    .then(resp=>res.send(resp))
+}
 
 
 const createCourse = async (req, res) => {
@@ -18,11 +29,36 @@ const createCourse = async (req, res) => {
         landingPageDetails: JSON.parse(req.body.landingDetails),
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
+        image: req.file.filename,
         author:JSON.parse(req.body.author).userDetails
     })
     await newCourse.save()
     .then(resp=>{console.log('saved', resp),res.send('saved')})
     
+}
+
+// const getImage = async(req,res)=>{
+//     console.log(req.params.img)
+//     if(req.params.img) res.send(require(`../images/${req.params.img}`))
+//     else res.sendFile(require(`../images/image-1715318536066.jpg`))
+// }
+const imagesDirectory = path.join(__dirname, '../images');
+
+const getImage = async(req, res) => {
+    const filename = req.params.img;
+    const filePath = path.join(imagesDirectory, filename);
+    // console.log(filePath)
+    // Check if the file exists and send it, otherwise send a 404 response
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            // File does not exist, send 404 error
+            res.status(404).send('Image not found');
+        } else {
+            // File exists, send it as response
+            console.log('sending', filePath)
+            res.sendFile('http://localhost:7777/images/image-1715318557651.jpg');
+        }
+    });
 }
 
 const home = async (req, res) => {
@@ -109,6 +145,6 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, home, categorieslist, authorization, getcourses }
+const controllers = { createCourse, home, categorieslist, authorization, getcourses, searchResults, getImage }
 
 module.exports = controllers;

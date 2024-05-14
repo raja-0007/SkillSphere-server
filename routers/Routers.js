@@ -3,7 +3,6 @@ const controllers = require('../controllers/controller')
 const express = require('express')
 const authenticationJWT = require('../middlewares/authenticationJWT')
 const multer = require('multer')
-const path = require('path')
 
 const storage = multer.diskStorage({
     destination:(req, file, cb)=>{
@@ -22,5 +21,14 @@ router.get('/getcourse',controllers.getcourses)
 router.post('/authorization',authenticationJWT,controllers.authorization)
 router.get('/categorieslist',controllers.categorieslist)
 router.post('/createcourse', upload.single('image'), controllers.createCourse)
+router.get('/searchResults/:search',controllers.searchResults)
+router.get('/getImage/:img',controllers.getImage)
+
+// const path = require('path');
+// const app = express();
+
+// const imagesDirectory = path.join(__dirname, '../images');
+
+// app.use('/getImage/:img', express.static(imagesDirectory));
 
 module.exports = router;

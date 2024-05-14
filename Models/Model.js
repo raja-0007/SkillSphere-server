@@ -22,7 +22,8 @@ const newCourseSchema= mongoose.Schema({
     landingPageDetails:Object,
     price:String,
     messages:Object,
-    author:Object
+    author:Object,
+    image:String
 })
 
 const categoriesSchema = mongoose.Schema({

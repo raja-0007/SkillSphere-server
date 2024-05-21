@@ -33,6 +33,8 @@ const usersSchema = mongoose.Schema({
     username:String,
     email:String,
     password:String,
+    cart:Array,
+    enrolled:Array
     
 })
 const newCourseModel = new mongoose.model('newCourses', newCourseSchema)

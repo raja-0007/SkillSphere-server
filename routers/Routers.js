@@ -23,6 +23,7 @@ router.get('/categorieslist',controllers.categorieslist)
 router.post('/createcourse', upload.single('image'), controllers.createCourse)
 router.get('/searchResults/:search',controllers.searchResults)
 router.get('/getImage/:img',controllers.getImage)
+router.post('/enroll',controllers.enroll)
 
 // const path = require('path');
 // const app = express();

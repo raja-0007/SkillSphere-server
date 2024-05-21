@@ -1,15 +1,34 @@
 const models = require('../Models/Model')
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fsPromises = require('fs').promises;
 
+const fs = require('fs');
+
+
+const searchResults = async(req, res)=>{
+    // console.log(req.params.search)
+    const searchString = req.params.search
+    await models.newCourseModel.find({'landingPageDetails.title': { $regex: searchString, $options: 'i' }})
+    .then(resp=>res.send(resp))
+}
+
+const enroll = async(req,res)=>{
+    
+    console.log('enroll', req.body.courseId, req.body.email)
+    const user = await models.usersModel.find({email:req.body.email})
+    console.log(user, user[0]._id)
+    var enrolled = user[0].enrolled || []
+    console.log(enrolled)
+    enrolled.push(req.body.courseId)
+    await models.usersModel.findByIdAndUpdate(user[0]._id,{enrolled: enrolled},{new:true})
+    .then(resp=>{console.log(resp); res.send('success')})
+}
 
 
 const createCourse = async (req, res) => {
-    // console.log('body>>>>>>>>', req.body)
-    // console.log(JSON.parse(req.body.sections)[0], req.file.filename)
-    // Object.keys(req.body).forEach(element => {
-    //     console.log(element, '>>>>>>>>>>. ', JSON.parse(req.body[element]))
-    // });
+    
     const newCourse = new models.newCourseModel({
         outcomes: JSON.parse(req.body.outcomes),
         requirements: JSON.parse(req.body.requirements),
@@ -18,11 +37,29 @@ const createCourse = async (req, res) => {
         landingPageDetails: JSON.parse(req.body.landingDetails),
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
+        image: req.file.filename,
         author:JSON.parse(req.body.author).userDetails
     })
     await newCourse.save()
     .then(resp=>{console.log('saved', resp),res.send('saved')})
     
+}
+
+
+const imagesDirectory = path.join(__dirname, '../images'); //currently not using
+const getImage = async(req, res) => { // currently not using
+    const filename = req.params.img;
+    const filePath = path.join(imagesDirectory, filename);
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            // File does not exist, send 404 error
+            res.status(404).send('Image not found');
+        } else {
+            // File exists, send it as response
+            console.log('sending', filePath)
+            res.sendFile('http://localhost:7777/images/image-1715318557651.jpg');
+        }
+    });
 }
 
 const home = async (req, res) => {
@@ -60,10 +97,7 @@ const authorization = async (req, res) => {
                 const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
 
                 res.send({
-                    status: 'authorised', token: token, userDetails: {
-                        username: user.username,
-                        email: user.email
-                    }
+                    status: 'authorised', token: token, userDetails: user
                 })
 
             }
@@ -109,6 +143,6 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, home, categorieslist, authorization, getcourses }
+const controllers = { createCourse, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll }
 
 module.exports = controllers;

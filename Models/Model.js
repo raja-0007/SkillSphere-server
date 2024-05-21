@@ -22,7 +22,8 @@ const newCourseSchema= mongoose.Schema({
     landingPageDetails:Object,
     price:String,
     messages:Object,
-    author:Object
+    author:Object,
+    image:String
 })
 
 const categoriesSchema = mongoose.Schema({
@@ -32,6 +33,8 @@ const usersSchema = mongoose.Schema({
     username:String,
     email:String,
     password:String,
+    cart:Array,
+    enrolled:Array
     
 })
 const newCourseModel = new mongoose.model('newCourses', newCourseSchema)

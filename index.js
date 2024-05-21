@@ -5,6 +5,9 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const path = require('path');
+
+
 
 dotenv.config()
 const app = express()
@@ -14,6 +17,8 @@ const corsoptions = {
     optionSuccessStatus: 200
 }
 app.use(cors(corsoptions))
+
+app.use('/images', express.static('images'));
 
 
 app.use('/api/', AppRouter)

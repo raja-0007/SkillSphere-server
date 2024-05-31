@@ -24,6 +24,7 @@ router.post('/createcourse', upload.single('image'), controllers.createCourse)
 router.get('/searchResults/:search',controllers.searchResults)
 router.get('/getImage/:img',controllers.getImage)
 router.post('/enroll',controllers.enroll)
+router.get('/getCourseDetails/:courseId',controllers.getCourseDetails)
 
 // const path = require('path');
 // const app = express();

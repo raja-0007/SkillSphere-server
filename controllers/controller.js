@@ -45,6 +45,11 @@ const createCourse = async (req, res) => {
     
 }
 
+const getCourseDetails= async(req,res)=>{
+    const courseId = req.params.courseId
+    await models.newCourseModel.findById(courseId)
+    .then(resp=>res.send(resp))
+}
 
 const imagesDirectory = path.join(__dirname, '../images'); //currently not using
 const getImage = async(req, res) => { // currently not using
@@ -143,6 +148,6 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll }
+const controllers = { createCourse, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll, getCourseDetails }
 
 module.exports = controllers;

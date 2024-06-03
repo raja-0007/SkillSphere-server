@@ -3,32 +3,33 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fsPromises = require('fs').promises;
+let Vimeo = require('vimeo').Vimeo;
 
 const fs = require('fs');
 
 
-const searchResults = async(req, res)=>{
+const searchResults = async (req, res) => {
     // console.log(req.params.search)
     const searchString = req.params.search
-    await models.newCourseModel.find({'landingPageDetails.title': { $regex: searchString, $options: 'i' }})
-    .then(resp=>res.send(resp))
+    await models.newCourseModel.find({ 'landingPageDetails.title': { $regex: searchString, $options: 'i' } })
+        .then(resp => res.send(resp))
 }
 
-const enroll = async(req,res)=>{
-    
+const enroll = async (req, res) => {
+
     console.log('enroll', req.body.courseId, req.body.email)
-    const user = await models.usersModel.find({email:req.body.email})
+    const user = await models.usersModel.find({ email: req.body.email })
     console.log(user, user[0]._id)
     var enrolled = user[0].enrolled || []
     console.log(enrolled)
     enrolled.push(req.body.courseId)
-    await models.usersModel.findByIdAndUpdate(user[0]._id,{enrolled: enrolled},{new:true})
-    .then(resp=>{console.log(resp); res.send('success')})
+    await models.usersModel.findByIdAndUpdate(user[0]._id, { enrolled: enrolled }, { new: true })
+        .then(resp => { console.log(resp); res.send('success') })
 }
 
 
 const createCourse = async (req, res) => {
-    
+
     const newCourse = new models.newCourseModel({
         outcomes: JSON.parse(req.body.outcomes),
         requirements: JSON.parse(req.body.requirements),
@@ -38,21 +39,74 @@ const createCourse = async (req, res) => {
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
         image: req.file.filename,
-        author:JSON.parse(req.body.author).userDetails
+        author: JSON.parse(req.body.author).userDetails
     })
     await newCourse.save()
-    .then(resp=>{console.log('saved', resp),res.send('saved')})
-    
+        .then(resp => { console.log('saved', resp), res.send('saved') })
+
 }
 
-const getCourseDetails= async(req,res)=>{
+const createCourseVideoUpload = async (req, res) => {
+    let client = new Vimeo(process.env.VIMEO_CLIENT_ID, process.env.VIMEO_SECRET, process.env.VIMEO_TOKEN);
+    let file_name = `videos/${req.file.filename}`
+
+    const getVideoUrl = (uri) => {
+        client.request(uri + '?fields=link', function (error, body, statusCode, headers) {
+            if (error) {
+                console.log('There was an error making the request.')
+                console.log('Server reported: ' + error)
+                res.send({ status: 'failed', message: 'error in getting video url' })
+                return
+            }
+
+            console.log('Your video link is: ' + body.link)
+            res.send({ status: 'success', videoUrl: body.link })
+        })
+    }
+    const getTranscoding = (uri) => {
+        client.request(uri + '?fields=transcode.status', function (error, body, status_code, headers) {
+            if (body.transcode.status === 'complete') {
+                console.log('Your video finished transcoding.')
+            } else if (body.transcode.status === 'in_progress') {
+                console.log('Your video is still transcoding.')
+            } else {
+                console.log('Your video encountered an error during transcoding.')
+                res.send({ status: 'failed', message: 'error in transcoding video ' })
+            }
+        })
+    }
+    client.upload(
+        file_name,
+        {
+            'name': 'Untitled',
+            'description': 'The description goes here.'
+        },
+        function (uri) {
+            console.log('Your video URI is: ' + uri);
+            getTranscoding(uri)
+            getVideoUrl(uri)
+        },
+        function (bytes_uploaded, bytes_total) {
+            var percentage = (bytes_uploaded / bytes_total * 100).toFixed(2)
+            console.log(bytes_uploaded, bytes_total, percentage + '%')
+        },
+        function (error) {
+            console.log('Failed because: ' + error)
+            res.send({ status: 'failed', message: 'error in uploading video ' })
+        }
+    )
+
+
+}
+
+const getCourseDetails = async (req, res) => {
     const courseId = req.params.courseId
     await models.newCourseModel.findById(courseId)
-    .then(resp=>res.send(resp))
+        .then(resp => res.send(resp))
 }
 
 const imagesDirectory = path.join(__dirname, '../images'); //currently not using
-const getImage = async(req, res) => { // currently not using
+const getImage = async (req, res) => { // currently not using
     const filename = req.params.img;
     const filePath = path.join(imagesDirectory, filename);
     fs.access(filePath, fs.constants.F_OK, (err) => {
@@ -148,6 +202,6 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll, getCourseDetails }
+const controllers = { createCourse, createCourseVideoUpload, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll, getCourseDetails }
 
 module.exports = controllers;

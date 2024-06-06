@@ -27,6 +27,26 @@ const enroll = async (req, res) => {
         .then(resp => { console.log(resp); res.send('success') })
 }
 
+const addToCart = async (req, res) => {
+    console.log(req.body.courseId, req.body.userId)
+    const user = await models.usersModel.find({ _id: req.body.userId })
+    console.log(user, user[0]._id)
+    var cart = user[0].cart || []
+    console.log(cart)
+    cart.push(req.body.courseId)
+
+    await models.usersModel.findByIdAndUpdate(user[0]._id, { cart: cart }, { new: true })
+        .then(resp => { console.log(resp); res.send({ status: 'success', data: resp }) })
+}
+
+const getCart = async(req, res) => {
+    console.log(req.params.userId)
+    const user = await models.usersModel.find({ _id: req.params.userId })
+    console.log(user, user[0]._id)
+    const cart = user[0].cart || []
+    res.send({status:'success', cart:cart})
+}
+
 
 const createCourse = async (req, res) => {
 
@@ -139,6 +159,13 @@ const categorieslist = async (req, res) => {
     res.send(list[0].categories)
 }
 
+const getUserDetails = async(req,res)=>{      //currently not using
+    console.log(req.params.userId)
+    const user = await models.usersModel.find({ _id: req.params.userId })
+    console.log(user, user[0]._id)
+    res.send({status:'success',data:user})
+
+}
 const authorization = async (req, res) => {
 
     console.log(req.body.action)
@@ -202,6 +229,6 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, createCourseVideoUpload, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll, getCourseDetails }
+const controllers = { createCourse, createCourseVideoUpload, home, categorieslist, authorization, getUserDetails, getcourses, searchResults, getImage, addToCart, getCart, enroll, getCourseDetails }
 
 module.exports = controllers;

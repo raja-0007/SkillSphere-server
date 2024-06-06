@@ -23,7 +23,8 @@ const newCourseSchema= mongoose.Schema({
     price:String,
     messages:Object,
     author:Object,
-    image:String
+    image:String,
+    enrolled:Array
 })
 
 const categoriesSchema = mongoose.Schema({

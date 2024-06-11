@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const fsPromises = require('fs').promises;
 let Vimeo = require('vimeo').Vimeo;
+const Stripe = require('stripe');
+const stripe = Stripe('sk_test_51PJUGRSCSlPFnl40eXYhsPqHvL5qCLxiL0jkBGoAaXxrdn0OAekkhH4S5xmh7qcXvJDEZScBx20HZFmz9NXYzqRo00YL3tZaXR');
 
 const fs = require('fs');
 
@@ -17,15 +19,114 @@ const searchResults = async (req, res) => {
 
 const enroll = async (req, res) => {
 
-    console.log('enroll', req.body.courseId, req.body.email)
-    const user = await models.usersModel.find({ email: req.body.email })
-    console.log(user, user[0]._id)
-    var enrolled = user[0].enrolled || []
-    console.log(enrolled)
-    enrolled.push(req.body.courseId)
-    await models.usersModel.findByIdAndUpdate(user[0]._id, { enrolled: enrolled }, { new: true })
-        .then(resp => { console.log(resp); res.send('success') })
+    // console.log('enroll', req.body.courseId, req.body.email)
+    // const user = await models.usersModel.find({ email: req.body.email })
+    // console.log(user, user[0]._id)
+    // var enrolled = user[0].enrolled || []
+    // console.log(enrolled)
+    // enrolled.push(req.body.courseId)
+    // await models.usersModel.findByIdAndUpdate(user[0]._id, { enrolled: enrolled }, { new: true })
+    //     .then(resp => { console.log(resp); res.send('success') })
+
+    console.log('enrolledddddd',req.body.course,'userid:::', req.body.userId)
+    const usersData = await models.userDataModel.find({ userId: req.body.userId })
+    var cart = usersData[0].cart || []
+    console.log(cart)
+    cart = cart.filter(item=>item._id !== req.body.course._id)
+
+    await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
+        .then(resp => { console.log(resp); })
+
+    
+    if (usersData.length == 0) {
+        let userData = new models.userDataModel({
+            userId: req.body.userId,
+            enrolled: [req.body.course]
+        })
+
+        await userData.save()
+            .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: userData.enrolled }) })
+    }
+    else {
+
+        console.log(usersData, usersData[0]._id)
+        var enrolled = usersData[0].enrolled || []
+        console.log(enrolled)
+        enrolled.push(req.body.course)
+
+        await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { enrolled: enrolled }, { new: true })
+            .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: resp.enrolled }) })
+    }
 }
+
+const addToCart = async (req, res) => {
+    console.log(req.body.course, req.body.userId)
+    const usersData = await models.userDataModel.find({ userId: req.body.userId })
+
+    if (usersData.length == 0) {
+        let userData = new models.userDataModel({
+            userId: req.body.userId,
+            cart: [JSON.parse(req.body.course)]
+        })
+
+        await userData.save()
+            .then(resp => { console.log(resp); res.send({ status: 'success', cart: userData.cart }) })
+    }
+    else {
+
+        console.log(usersData, usersData[0]._id)
+        var cart = usersData[0].cart || []
+        console.log(cart)
+        cart.push(JSON.parse(req.body.course))
+
+        await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
+            .then(resp => { console.log(resp); res.send({ status: 'success', cart: resp.cart }) })
+    }
+}
+
+const addPayment = async (req, res) => {
+    const { cart, userId } = req.body
+
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: JSON.parse(cart).map(item => ({
+
+            price_data: {
+                currency: 'inr',
+                product_data: {
+                    name: item.landingPageDetails.title
+                },
+                unit_amount: parseInt(item.price) * 100
+            },
+
+            quantity: 1,
+
+        })),
+        mode: 'payment',
+        success_url: `${process.env.FRONTEND_URL}/success/${userId}`,
+        cancel_url: `${process.env.FRONTEND_URL}/cancel`
+    })
+
+    res.send({ id: session.id })
+}
+
+const getCart = async (req, res) => {
+    console.log(req.params.userId)
+    const user = await models.userDataModel.find({ userId: req.params.userId })
+    console.log(user, user[0]?._id)
+    const cart = user[0]?.cart || []
+    res.send({ status: 'success', cart: cart })
+}
+
+const getEnrolled = async (req, res) => {
+    console.log(req.params.userId)
+    const user = await models.userDataModel.find({ userId: req.params.userId })
+    console.log(user, user[0]?._id)
+    const enrolled = user[0]?.enrolled || []
+    res.send({ status: 'success', enrolled: enrolled })
+}
+
+
 
 
 const createCourse = async (req, res) => {
@@ -139,6 +240,13 @@ const categorieslist = async (req, res) => {
     res.send(list[0].categories)
 }
 
+const getUserDetails = async (req, res) => {      //currently not using
+    console.log(req.params.userId)
+    const user = await models.usersModel.find({ _id: req.params.userId })
+    console.log(user, user[0]._id)
+    res.send({ status: 'success', data: user })
+
+}
 const authorization = async (req, res) => {
 
     console.log(req.body.action)
@@ -202,6 +310,11 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { createCourse, createCourseVideoUpload, home, categorieslist, authorization, getcourses, searchResults, getImage, enroll, getCourseDetails }
+const controllers = { 
+    createCourse, createCourseVideoUpload, home, 
+    categorieslist, authorization, getUserDetails,
+     getcourses, searchResults, getImage, addToCart,
+      addPayment, getCart, getEnrolled, enroll, getCourseDetails
+ }
 
 module.exports = controllers;

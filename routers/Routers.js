@@ -35,7 +35,12 @@ router.post('/createcourse', upload.single('image'), controllers.createCourse)
 router.post('/createcourse/videoUpload', upload2.single('video'), controllers.createCourseVideoUpload)
 router.get('/searchResults/:search',controllers.searchResults)
 router.get('/getImage/:img',controllers.getImage)
+router.post('/addToCart', controllers.addToCart)
+router.get('/getCart/:userId', controllers.getCart)
+router.post('/create-checkout-session',controllers.addPayment)
+router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using
 router.post('/enroll',controllers.enroll)
+router.get('/getEnrolled/:userId', controllers.getEnrolled)
 router.get('/getCourseDetails/:courseId',controllers.getCourseDetails)
 
 // const path = require('path');

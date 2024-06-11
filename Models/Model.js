@@ -38,11 +38,19 @@ const usersSchema = mongoose.Schema({
     enrolled:Array
     
 })
+
+const userDataSchema = mongoose.Schema({
+    userId:String,
+    cart:Array,
+    enrolled:Array
+})
+
+const userDataModel = new mongoose.model('userData', userDataSchema)
 const newCourseModel = new mongoose.model('newCourses', newCourseSchema)
 const categoriesModel = new mongoose.model('categories',categoriesSchema)
 const courseModel = new mongoose.model('courses', courseSchema)
 const usersModel = new mongoose.model('users',usersSchema)
 
 
-const models = {courseModel, categoriesModel, usersModel, newCourseModel}
+const models = {courseModel, categoriesModel, usersModel, newCourseModel, userDataModel}
 module.exports = models

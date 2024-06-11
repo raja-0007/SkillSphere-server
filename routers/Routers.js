@@ -37,8 +37,10 @@ router.get('/searchResults/:search',controllers.searchResults)
 router.get('/getImage/:img',controllers.getImage)
 router.post('/addToCart', controllers.addToCart)
 router.get('/getCart/:userId', controllers.getCart)
-router.get('/getUserDetails/:userId', controllers.getUserDetails)
+router.post('/create-checkout-session',controllers.addPayment)
+router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using
 router.post('/enroll',controllers.enroll)
+router.get('/getEnrolled/:userId', controllers.getEnrolled)
 router.get('/getCourseDetails/:courseId',controllers.getCourseDetails)
 
 // const path = require('path');

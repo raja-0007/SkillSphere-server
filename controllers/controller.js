@@ -18,26 +18,16 @@ const searchResults = async (req, res) => {
 }
 
 const enroll = async (req, res) => {
-
-    // console.log('enroll', req.body.courseId, req.body.email)
-    // const user = await models.usersModel.find({ email: req.body.email })
-    // console.log(user, user[0]._id)
-    // var enrolled = user[0].enrolled || []
-    // console.log(enrolled)
-    // enrolled.push(req.body.courseId)
-    // await models.usersModel.findByIdAndUpdate(user[0]._id, { enrolled: enrolled }, { new: true })
-    //     .then(resp => { console.log(resp); res.send('success') })
-
-    console.log('enrolledddddd',req.body.course,'userid:::', req.body.userId)
+    console.log('enrolledddddd', req.body.course, 'userid:::', req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
     console.log(cart)
-    cart = cart.filter(item=>item._id !== req.body.course._id)
+    cart = cart.filter(item => item._id !== req.body.course._id)
 
     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
         .then(resp => { console.log(resp); })
 
-    
+
     if (usersData.length == 0) {
         let userData = new models.userDataModel({
             userId: req.body.userId,
@@ -58,6 +48,7 @@ const enroll = async (req, res) => {
             .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: resp.enrolled }) })
     }
 }
+
 
 const addToCart = async (req, res) => {
     console.log(req.body.course, req.body.userId)
@@ -84,6 +75,25 @@ const addToCart = async (req, res) => {
     }
 }
 
+const removeFromCart = async (req, res) => {
+    console.log(req.body.courseId, req.body.userId)
+    const usersData = await models.userDataModel.find({ userId: req.body.userId })
+    var cart = usersData[0].cart || []
+    console.log(cart)
+    
+    cart = cart.filter(item=>item._id !== req.body.courseId)
+
+    await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
+        .then(resp => { console.log(resp); res.send({ status: 'success', cart: resp.cart }) })
+}
+
+const getCart = async (req, res) => {
+    console.log(req.params.userId)
+    const user = await models.userDataModel.find({ userId: req.params.userId })
+    console.log(user, user[0]?._id)
+    const cart = user[0]?.cart || []
+    res.send({ status: 'success', cart: cart })
+}
 const addPayment = async (req, res) => {
     const { cart, userId } = req.body
 
@@ -110,13 +120,6 @@ const addPayment = async (req, res) => {
     res.send({ id: session.id })
 }
 
-const getCart = async (req, res) => {
-    console.log(req.params.userId)
-    const user = await models.userDataModel.find({ userId: req.params.userId })
-    console.log(user, user[0]?._id)
-    const cart = user[0]?.cart || []
-    res.send({ status: 'success', cart: cart })
-}
 
 const getEnrolled = async (req, res) => {
     console.log(req.params.userId)
@@ -310,11 +313,11 @@ const authorization = async (req, res) => {
         }
     }
 }
-const controllers = { 
-    createCourse, createCourseVideoUpload, home, 
+const controllers = {
+    createCourse, createCourseVideoUpload, home,
     categorieslist, authorization, getUserDetails,
-     getcourses, searchResults, getImage, addToCart,
-      addPayment, getCart, getEnrolled, enroll, getCourseDetails
- }
+    getcourses, searchResults, getImage, addToCart,
+    addPayment, getCart, getEnrolled, enroll, getCourseDetails, removeFromCart
+}
 
 module.exports = controllers;

@@ -133,6 +133,7 @@ const getEnrolled = async (req, res) => {
 
 
 const createCourse = async (req, res) => {
+    const author = JSON.parse(req.body.author).userDetails
 
     const newCourse = new models.newCourseModel({
         outcomes: JSON.parse(req.body.outcomes),
@@ -143,10 +144,10 @@ const createCourse = async (req, res) => {
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
         image: req.file.filename,
-        author: JSON.parse(req.body.author).userDetails
+        author: {authorId:author._id, name:author.username, email:author.email}
     })
     await newCourse.save()
-        .then(resp => { console.log('saved', resp), res.send('saved') })
+        .then(resp => { console.log('saved', resp), res.send({status:'saved',courseId:resp._id}) })
 
 }
 

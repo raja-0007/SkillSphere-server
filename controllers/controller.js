@@ -18,35 +18,47 @@ const searchResults = async (req, res) => {
 }
 
 const enroll = async (req, res) => {
-    console.log('enrolledddddd', req.body.course, 'userid:::', req.body.userId)
+    console.log('enrolledddddd', JSON.parse(req.body.courseIds), 'userid:::', req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
-    console.log(cart)
-    cart = cart.filter(item => item._id !== req.body.course._id)
+    // console.log(cart)
+    cart = cart.filter(item => !JSON.parse(req.body.courseIds).includes(item._id))
 
     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
         .then(resp => { console.log(resp); })
 
 
-    if (usersData.length == 0) {
-        let userData = new models.userDataModel({
-            userId: req.body.userId,
-            enrolled: [req.body.course]
-        })
+    // let course = await models.newCourseModel.findById(req.body.courseId)
+    // let enrolled = course.enrolled || []
+    // enrolled.push(req.body.userId)
+    await models.newCourseModel.updateMany(
+        { _id: { $in: JSON.parse(req.body.courseIds) } },
+        { $push: { enrolled: req.body.userId } }
+      )
+      .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
 
-        await userData.save()
-            .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: userData.enrolled }) })
-    }
-    else {
+    // await models.newCourseModel.findByIdAndUpdate(req.body.courseId, { enrolled: enrolled }, { new: true })
+    //     .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
 
-        console.log(usersData, usersData[0]._id)
-        var enrolled = usersData[0].enrolled || []
-        console.log(enrolled)
-        enrolled.push(req.body.course)
+    // if (usersData.length == 0) {
+    //     let userData = new models.userDataModel({
+    //         userId: req.body.userId,
+    //         enrolled: [req.body.course]
+    //     })
 
-        await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { enrolled: enrolled }, { new: true })
-            .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: resp.enrolled }) })
-    }
+    //     await userData.save()
+    //         .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: userData.enrolled }) })
+    // }
+    // else {
+
+    //     console.log(usersData, usersData[0]._id)
+    //     var enrolled = usersData[0].enrolled || []
+    //     console.log(enrolled)
+    //     enrolled.push(req.body.course)
+
+    //     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { enrolled: enrolled }, { new: true })
+    //         .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: resp.enrolled }) })
+    // }
 }
 
 
@@ -80,8 +92,8 @@ const removeFromCart = async (req, res) => {
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
     console.log(cart)
-    
-    cart = cart.filter(item=>item._id !== req.body.courseId)
+
+    cart = cart.filter(item => item._id !== req.body.courseId)
 
     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
         .then(resp => { console.log(resp); res.send({ status: 'success', cart: resp.cart }) })
@@ -96,7 +108,10 @@ const getCart = async (req, res) => {
 }
 const addPayment = async (req, res) => {
     const { cart, userId } = req.body
-
+    var str = ''
+    JSON.parse(cart).forEach(item => {
+        str += `${item._id}/`
+    });
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: JSON.parse(cart).map(item => ({
@@ -113,9 +128,13 @@ const addPayment = async (req, res) => {
 
         })),
         mode: 'payment',
-        success_url: `${process.env.FRONTEND_URL}/success/${userId}`,
+        success_url: `${process.env.FRONTEND_URL}/success/${str}`,
         cancel_url: `${process.env.FRONTEND_URL}/cancel`
     })
+
+
+    console.log(`${process.env.FRONTEND_URL}/success/${str}`)
+
 
     res.send({ id: session.id })
 }
@@ -144,10 +163,10 @@ const createCourse = async (req, res) => {
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
         image: req.file.filename,
-        author: {authorId:author._id, name:author.username, email:author.email}
+        author: { authorId: author._id, name: author.username, email: author.email }
     })
     await newCourse.save()
-        .then(resp => { console.log('saved', resp), res.send({status:'saved',courseId:resp._id}) })
+        .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id }) })
 
 }
 

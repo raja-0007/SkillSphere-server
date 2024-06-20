@@ -28,37 +28,13 @@ const enroll = async (req, res) => {
         .then(resp => { console.log(resp); })
 
 
-    // let course = await models.newCourseModel.findById(req.body.courseId)
-    // let enrolled = course.enrolled || []
-    // enrolled.push(req.body.userId)
     await models.newCourseModel.updateMany(
         { _id: { $in: JSON.parse(req.body.courseIds) } },
         { $push: { enrolled: req.body.userId } }
       )
       .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
 
-    // await models.newCourseModel.findByIdAndUpdate(req.body.courseId, { enrolled: enrolled }, { new: true })
-    //     .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
-
-    // if (usersData.length == 0) {
-    //     let userData = new models.userDataModel({
-    //         userId: req.body.userId,
-    //         enrolled: [req.body.course]
-    //     })
-
-    //     await userData.save()
-    //         .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: userData.enrolled }) })
-    // }
-    // else {
-
-    //     console.log(usersData, usersData[0]._id)
-    //     var enrolled = usersData[0].enrolled || []
-    //     console.log(enrolled)
-    //     enrolled.push(req.body.course)
-
-    //     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { enrolled: enrolled }, { new: true })
-    //         .then(resp => { console.log(resp); res.send({ status: 'success', enrolled: resp.enrolled }) })
-    // }
+    
 }
 
 
@@ -100,9 +76,9 @@ const removeFromCart = async (req, res) => {
 }
 
 const getCart = async (req, res) => {
-    console.log(req.params.userId)
+    // console.log(req.params.userId)
     const user = await models.userDataModel.find({ userId: req.params.userId })
-    console.log(user, user[0]?._id)
+    // console.log(user, user[0]?._id)
     const cart = user[0]?.cart || []
     res.send({ status: 'success', cart: cart })
 }
@@ -141,16 +117,24 @@ const addPayment = async (req, res) => {
 
 
 const getEnrolled = async (req, res) => {
-    console.log(req.params.userId)
-    const user = await models.userDataModel.find({ userId: req.params.userId })
-    console.log(user, user[0]?._id)
-    const enrolled = user[0]?.enrolled || []
+    // console.log(req.params.userId)
+    console.log('enrolledddd')
+    const enrolled = await models.newCourseModel.find({ enrolled: { $in: [req.params.userId] }})
+    // console.log(user, user[0]?._id)
+    
     res.send({ status: 'success', enrolled: enrolled })
 }
 
+//teacher route
+const GetTeacherCourses=async(req,res)=>{
+    const {userId} = req.params
+    console.log(userId)
+    await models.newCourseModel.find({'author.authorId':userId})
+    .then(resp=>{console.log(resp);res.send({status:'success', courses:resp})})
+}
 
 
-
+//teacher route
 const createCourse = async (req, res) => {
     const author = JSON.parse(req.body.author).userDetails
 
@@ -163,13 +147,13 @@ const createCourse = async (req, res) => {
         price: JSON.parse(req.body.price),
         messages: JSON.parse(req.body.messages),
         image: req.file.filename,
-        author: { authorId: author._id, name: author.username, email: author.email }
+        author: { authorId: author._id, username: author.username, email: author.email }
     })
     await newCourse.save()
         .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id }) })
 
 }
-
+//teacher route
 const createCourseVideoUpload = async (req, res) => {
     let client = new Vimeo(process.env.VIMEO_CLIENT_ID, process.env.VIMEO_SECRET, process.env.VIMEO_TOKEN);
     let file_name = `videos/${req.file.filename}`
@@ -223,7 +207,8 @@ const createCourseVideoUpload = async (req, res) => {
 
 }
 
-const getCourseDetails = async (req, res) => {
+const getCourseDetails = async (req, res) => {  //currently not using
+
     const courseId = req.params.courseId
     await models.newCourseModel.findById(courseId)
         .then(resp => res.send(resp))
@@ -337,7 +322,8 @@ const controllers = {
     createCourse, createCourseVideoUpload, home,
     categorieslist, authorization, getUserDetails,
     getcourses, searchResults, getImage, addToCart,
-    addPayment, getCart, getEnrolled, enroll, getCourseDetails, removeFromCart
+    addPayment, getCart, getEnrolled, enroll, getCourseDetails,
+    removeFromCart, GetTeacherCourses
 }
 
 module.exports = controllers;

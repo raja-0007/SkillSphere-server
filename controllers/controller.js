@@ -63,6 +63,7 @@ const addToCart = async (req, res) => {
     }
 }
 
+
 const removeFromCart = async (req, res) => {
     console.log(req.body.courseId, req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
@@ -81,6 +82,40 @@ const getCart = async (req, res) => {
     // console.log(user, user[0]?._id)
     const cart = user[0]?.cart || []
     res.send({ status: 'success', cart: cart })
+}
+
+const addToWishlist = async (req, res) => {
+    console.log(req.body.courseId, req.body.userId)
+    const usersData = await models.userDataModel.find({ userId: req.body.userId })
+
+    if (usersData.length == 0) {
+        let userData = new models.userDataModel({
+            userId: req.body.userId,
+            wishList: [req.body.courseId]
+        })
+
+        await userData.save()
+            .then(resp => { console.log(resp); res.send({ status: 'success', wishList: userData.wishList }) })
+    }
+    else {
+
+        // console.log(usersData, usersData[0]._id)
+        var wishList = usersData[0].wishList || []
+        // console.log(wishList)
+        wishList.push(req.body.courseId)
+
+        await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { wishList: wishList }, { new: true })
+            .then(resp => { console.log(resp); res.send({ status: 'success', wishList: resp.wishList }) })
+    }
+}
+const getWishlist = async (req, res) => {
+    console.log(req.params.userId)
+    const user = await models.userDataModel.find({ userId: req.params.userId })
+    // console.log(user, user[0]?._id)
+    const wishList = user[0]?.wishList || []
+    const List = await models.newCourseModel.find({ _id: { $in: wishList }})
+
+    res.send({ status: 'success', wishList: List, RawList:wishList })
 }
 const addPayment = async (req, res) => {
     const { cart, userId } = req.body
@@ -118,7 +153,7 @@ const addPayment = async (req, res) => {
 
 const getEnrolled = async (req, res) => {
     // console.log(req.params.userId)
-    console.log('enrolledddd')
+    // console.log('enrolledddd')
     const enrolled = await models.newCourseModel.find({ enrolled: { $in: [req.params.userId] }})
     // console.log(user, user[0]?._id)
     
@@ -323,7 +358,7 @@ const controllers = {
     categorieslist, authorization, getUserDetails,
     getcourses, searchResults, getImage, addToCart,
     addPayment, getCart, getEnrolled, enroll, getCourseDetails,
-    removeFromCart, GetTeacherCourses
+    removeFromCart, GetTeacherCourses, addToWishlist, getWishlist
 }
 
 module.exports = controllers;

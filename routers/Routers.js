@@ -45,6 +45,9 @@ router.post('/addToCart', controllers.addToCart)
 router.post('/removeFromCart',authenticationJWT,controllers.removeFromCart)
 router.get('/getCart/:userId',authenticationJWT, controllers.getCart) 
 
+router.post('/addToWishlist',authenticationJWT, controllers.addToWishlist)
+router.get('/getWishlist/:userId', controllers.getWishlist) 
+
 
 router.post('/create-checkout-session',controllers.addPayment)
 router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using

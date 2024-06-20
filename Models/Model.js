@@ -42,7 +42,7 @@ const usersSchema = mongoose.Schema({
 const userDataSchema = mongoose.Schema({
     userId:String,
     cart:Array,
-    enrolled:Array
+    wishList:Array
 })
 
 const userDataModel = new mongoose.model('userData', userDataSchema)

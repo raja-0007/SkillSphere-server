@@ -45,9 +45,14 @@ router.post('/addToCart', controllers.addToCart)
 router.post('/removeFromCart',authenticationJWT,controllers.removeFromCart)
 router.get('/getCart/:userId',authenticationJWT, controllers.getCart) 
 
+//wishlist routes
 router.post('/addToWishlist',authenticationJWT, controllers.addToWishlist)
-router.get('/getWishlist/:userId', controllers.getWishlist) 
+router.get('/getWishlist/:userId', controllers.getWishlist)
+router.delete('/removeFromWishlist/:courseId/:userId',authenticationJWT,controllers.removeFromWishlist) 
 
+//course completion routes
+router.put('/updateCompletion/:courseId/:userId/:lectId', controllers.updateCompletion)
+router.get('/getCompletionDetails/:courseId/:userId', controllers.getCompletionDetails)
 
 router.post('/create-checkout-session',controllers.addPayment)
 router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using

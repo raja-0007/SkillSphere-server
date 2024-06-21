@@ -180,6 +180,13 @@ const updateCompletion = async (req, res) => {
 
 }
 
+const getCompletionDetails = async (req, res) => {
+    const { courseId, userId } = req.params
+    const userData = await models.userDataModel.find({ userId: userId })
+    let completedLectures = userData[0]?.completedLectures || []
+    res.send({ status: 'success', completedLectures: completedLectures.filter(item => item.courseId == courseId)[0]?.completedLectures || []})
+}
+
 
 const addPayment = async (req, res) => {
     const { cart, userId } = req.body
@@ -424,7 +431,8 @@ const controllers = {
     categorieslist, authorization, getUserDetails,
     getcourses, searchResults, getImage, addToCart,
     addPayment, getCart, getEnrolled, enroll, getCourseDetails,
-    removeFromCart, GetTeacherCourses, addToWishlist, getWishlist, removeFromWishlist, updateCompletion
+    removeFromCart, GetTeacherCourses, addToWishlist, getWishlist,
+     removeFromWishlist, updateCompletion, getCompletionDetails
 }
 
 module.exports = controllers;

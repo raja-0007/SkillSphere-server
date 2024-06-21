@@ -52,7 +52,7 @@ router.delete('/removeFromWishlist/:courseId/:userId',authenticationJWT,controll
 
 //course completion routes
 router.put('/updateCompletion/:courseId/:userId/:lectId', controllers.updateCompletion)
-
+router.get('/getCompletionDetails/:courseId/:userId', controllers.getCompletionDetails)
 
 router.post('/create-checkout-session',controllers.addPayment)
 router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using

@@ -17,8 +17,10 @@ const searchResults = async (req, res) => {
         .then(resp => res.send(resp))
 }
 
+
+//enrollment functions
 const enroll = async (req, res) => {
-    console.log('enrolledddddd', JSON.parse(req.body.courseIds), 'userid:::', req.body.userId)
+    // console.log('enrolledddddd', JSON.parse(req.body.courseIds), 'userid:::', req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
     // console.log(cart)
@@ -31,15 +33,25 @@ const enroll = async (req, res) => {
     await models.newCourseModel.updateMany(
         { _id: { $in: JSON.parse(req.body.courseIds) } },
         { $push: { enrolled: req.body.userId } }
-      )
-      .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
+    )
+        .then(resp => { console.log('enrolled'); res.send({ status: 'success', enrolled: resp.enrolled }) })
 
-    
+
+}
+
+const getEnrolled = async (req, res) => {
+    // console.log(req.params.userId)
+    // console.log('enrolledddd')
+    const enrolled = await models.newCourseModel.find({ enrolled: { $in: [req.params.userId] } })
+    // console.log(user, user[0]?._id)
+
+    res.send({ status: 'success', enrolled: enrolled })
 }
 
 
+//cart functions
 const addToCart = async (req, res) => {
-    console.log(req.body.course, req.body.userId)
+    // console.log(req.body.course, req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
 
     if (usersData.length == 0) {
@@ -49,31 +61,30 @@ const addToCart = async (req, res) => {
         })
 
         await userData.save()
-            .then(resp => { console.log(resp); res.send({ status: 'success', cart: userData.cart }) })
+            .then(resp => { console.log('added to cart successfully'); res.send({ status: 'success', cart: userData.cart }) })
     }
     else {
 
-        console.log(usersData, usersData[0]._id)
+        // console.log(usersData, usersData[0]._id)
         var cart = usersData[0].cart || []
-        console.log(cart)
+        // console.log(cart)
         cart.push(JSON.parse(req.body.course))
 
         await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
-            .then(resp => { console.log(resp); res.send({ status: 'success', cart: resp.cart }) })
+            .then(resp => { console.log('added to cart successfully'); res.send({ status: 'success', cart: resp.cart }) })
     }
 }
 
-
 const removeFromCart = async (req, res) => {
-    console.log(req.body.courseId, req.body.userId)
+    // console.log(req.body.courseId, req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
-    console.log(cart)
+    // console.log(cart)
 
     cart = cart.filter(item => item._id !== req.body.courseId)
 
     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
-        .then(resp => { console.log(resp); res.send({ status: 'success', cart: resp.cart }) })
+        .then(resp => { console.log('removed from cart'); res.send({ status: 'success', cart: resp.cart }) })
 }
 
 const getCart = async (req, res) => {
@@ -84,8 +95,10 @@ const getCart = async (req, res) => {
     res.send({ status: 'success', cart: cart })
 }
 
+
+//wishlist routes
 const addToWishlist = async (req, res) => {
-    console.log(req.body.courseId, req.body.userId)
+    // console.log(req.body.courseId, req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
 
     if (usersData.length == 0) {
@@ -108,15 +121,66 @@ const addToWishlist = async (req, res) => {
             .then(resp => { console.log(resp); res.send({ status: 'success', wishList: resp.wishList }) })
     }
 }
+
 const getWishlist = async (req, res) => {
-    console.log(req.params.userId)
+    // console.log(req.params.userId)
     const user = await models.userDataModel.find({ userId: req.params.userId })
     // console.log(user, user[0]?._id)
     const wishList = user[0]?.wishList || []
-    const List = await models.newCourseModel.find({ _id: { $in: wishList }})
+    const List = await models.newCourseModel.find({ _id: { $in: wishList } })
 
-    res.send({ status: 'success', wishList: List, RawList:wishList })
+    res.send({ status: 'success', wishList: List, RawList: wishList })
 }
+
+const removeFromWishlist = async (req, res) => {
+    const { courseId, userId } = req.params
+    const usersData = await models.userDataModel.find({ userId: userId })
+    var wishList = usersData[0].wishList || []
+    // console.log(wishList)
+
+    wishList = wishList.filter(item => item !== courseId)
+
+    await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { wishList: wishList }, { new: true })
+        .then(resp => { console.log('deleted from wishlist'); res.send({ status: 'success', wishList: resp.wishList }) })
+}
+
+
+//course completion routes
+const updateCompletion = async (req, res) => {
+    const { courseId, userId, lectId } = req.params
+    console.log(userId)
+    const userData = await models.userDataModel.find({ userId: userId })
+    let completedLectures = userData[0]?.completedLectures || []
+
+    if (completedLectures.filter(item => item.courseId == courseId).length > 0) {
+
+        completedLectures = completedLectures.map(item => item.courseId == courseId ? { ...item, completedLectures: [...item?.completedLectures, lectId] } : item)
+    }
+    else {
+        completedLectures.push({
+            courseId: courseId,
+            completedLectures: [lectId]
+        })
+    }
+
+    console.log('updated list', completedLectures)
+
+    try {
+
+        await models.userDataModel.findOneAndUpdate({ userId: userId }, { completedLectures: completedLectures }, { new: true })
+            .then(resp => { console.log('updated completion ', resp); })
+
+        res.status(200).send({ status: 'success', completedLectures: completedLectures.filter(item => item.courseId == courseId)[0].completedLectures })
+    }
+    catch (err) {
+        res.status(500).send({ status: 'failed' })
+    }
+
+
+
+}
+
+
 const addPayment = async (req, res) => {
     const { cart, userId } = req.body
     var str = ''
@@ -151,21 +215,14 @@ const addPayment = async (req, res) => {
 }
 
 
-const getEnrolled = async (req, res) => {
-    // console.log(req.params.userId)
-    // console.log('enrolledddd')
-    const enrolled = await models.newCourseModel.find({ enrolled: { $in: [req.params.userId] }})
-    // console.log(user, user[0]?._id)
-    
-    res.send({ status: 'success', enrolled: enrolled })
-}
+
 
 //teacher route
-const GetTeacherCourses=async(req,res)=>{
-    const {userId} = req.params
+const GetTeacherCourses = async (req, res) => {
+    const { userId } = req.params
     console.log(userId)
-    await models.newCourseModel.find({'author.authorId':userId})
-    .then(resp=>{console.log(resp);res.send({status:'success', courses:resp})})
+    await models.newCourseModel.find({ 'author.authorId': userId })
+        .then(resp => { console.log(resp); res.send({ status: 'success', courses: resp }) })
 }
 
 
@@ -341,10 +398,19 @@ const authorization = async (req, res) => {
                 email: req.body.email,
                 password: hashedPassword
             })
+
+
             // const token = jwt.sign(user, process.env.JWT_SECRET_KEY,{expiresIn:'24h'})
             await user.save()
-                .then(result => {
+                .then(async (result) => {
                     console.log('new user added', result);
+                    const newUserData = new models.userDataModel({
+                        userId: result._id,
+                        completedLectures: [],
+                        cart: [],
+                        wishList: []
+                    })
+                    await newUserData.save()
                     const token = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
                     res.send({ status: 'success', token: token, userDetails: result });
                 })
@@ -358,7 +424,7 @@ const controllers = {
     categorieslist, authorization, getUserDetails,
     getcourses, searchResults, getImage, addToCart,
     addPayment, getCart, getEnrolled, enroll, getCourseDetails,
-    removeFromCart, GetTeacherCourses, addToWishlist, getWishlist
+    removeFromCart, GetTeacherCourses, addToWishlist, getWishlist, removeFromWishlist, updateCompletion
 }
 
 module.exports = controllers;

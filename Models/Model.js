@@ -42,7 +42,8 @@ const usersSchema = mongoose.Schema({
 const userDataSchema = mongoose.Schema({
     userId:String,
     cart:Array,
-    wishList:Array
+    wishList:Array,
+    completedLectures:Array
 })
 
 const userDataModel = new mongoose.model('userData', userDataSchema)

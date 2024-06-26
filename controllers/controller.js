@@ -249,7 +249,7 @@ const createCourse = async (req, res) => {
         author: { authorId: author._id, username: author.username, email: author.email }
     })
     await newCourse.save()
-        .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id }) })
+        .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id , authorId: resp.author.authorId}) })
 
 }
 //teacher route

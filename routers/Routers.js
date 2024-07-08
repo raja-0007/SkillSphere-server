@@ -54,8 +54,16 @@ router.delete('/removeFromWishlist/:courseId/:userId',authenticationJWT,controll
 router.put('/updateCompletion/:courseId/:userId/:lectId', controllers.updateCompletion)
 router.get('/getCompletionDetails/:courseId/:userId', controllers.getCompletionDetails)
 
+//rating routes
+router.post('/addRating',authenticationJWT, controllers.addRating)
+router.put('/editRating',authenticationJWT, controllers.editRating)
+router.get('/getRating/:courseIds/:userId', controllers.getRatings)
+
+//payment routes)
 router.post('/create-checkout-session',controllers.addPayment)
 router.get('/getUserDetails/:userId', controllers.getUserDetails) //currently not using
+
+//enrollment routes
 router.post('/enroll',controllers.enroll)
 router.get('/getEnrolled/:userId', controllers.getEnrolled)
 router.get('/getCourseDetails/:courseId',controllers.getCourseDetails)

@@ -24,7 +24,8 @@ const newCourseSchema= mongoose.Schema({
     messages:Object,
     author:Object,
     image:String,
-    enrolled:Array
+    enrolled:Array,
+    rating:Object
 })
 
 const categoriesSchema = mongoose.Schema({
@@ -43,7 +44,8 @@ const userDataSchema = mongoose.Schema({
     userId:String,
     cart:Array,
     wishList:Array,
-    completedLectures:Array
+    completedLectures:Array,
+    ratings:Array
 })
 
 const userDataModel = new mongoose.model('userData', userDataSchema)

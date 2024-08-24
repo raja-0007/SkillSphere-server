@@ -9,7 +9,7 @@ const courseSchema = mongoose.Schema({
     title: String,
     image: String,
     author: String,
-    rating: String,
+    rating: Object,
     cost: String
 
 })

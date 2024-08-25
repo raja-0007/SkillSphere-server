@@ -300,7 +300,7 @@ const addPayment = async (req, res) => {
 
 
 
-//teacher route
+//teacher routes
 const GetTeacherCourses = async (req, res) => {
     const { userId } = req.params
     console.log(userId)
@@ -308,8 +308,6 @@ const GetTeacherCourses = async (req, res) => {
         .then(resp => { console.log(resp); res.send({ status: 'success', courses: resp }) })
 }
 
-
-//teacher route
 const createCourse = async (req, res) => {
     const author = JSON.parse(req.body.author).userDetails
 
@@ -320,6 +318,7 @@ const createCourse = async (req, res) => {
         sections: JSON.parse(req.body.sections),
         landingPageDetails: JSON.parse(req.body.landingDetails),
         price: JSON.parse(req.body.price),
+        rating: JSON.parse(req.body.rating),
         messages: JSON.parse(req.body.messages),
         image: req.file.filename,
         author: { authorId: author._id, username: author.username, email: author.email }

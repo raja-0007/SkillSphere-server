@@ -108,10 +108,10 @@ const addToWishlist = async (req, res) => {
         })
 
         await userData.save()
-            .then(resp => { 
+            .then(resp => {
                 // console.log(resp);
-                 res.send({ status: 'success', wishList: userData.wishList })
-                 })
+                res.send({ status: 'success', wishList: userData.wishList })
+            })
     }
     else {
 
@@ -187,27 +187,27 @@ const getCompletionDetails = async (req, res) => {
     const { courseId, userId } = req.params
     const userData = await models.userDataModel.find({ userId: userId })
     let completedLectures = userData[0]?.completedLectures || []
-    res.send({ status: 'success', completedLectures: completedLectures.filter(item => item.courseId == courseId)[0]?.completedLectures || []})
+    res.send({ status: 'success', completedLectures: completedLectures.filter(item => item.courseId == courseId)[0]?.completedLectures || [] })
 }
 
 
 //rating routes
-const updateOverallRating=async(courseId)=>{
+const updateOverallRating = async (courseId) => {
     console.log('courseId, overallupdate', courseId)
     const usersData = await models.userDataModel.find()
     // const avarageUsers = usersData.length
-    const ratings = usersData.flatMap(data=>data.ratings)
-    const totalUsers = ratings.filter(item=>item.courseId == courseId)
-    console.log('ratings',ratings,'totalusers', totalUsers)
+    const ratings = usersData.flatMap(data => data.ratings)
+    const totalUsers = ratings.filter(item => item.courseId == courseId)
+    console.log('ratings', ratings, 'totalusers', totalUsers)
     var totalRatings = 0
     totalUsers.forEach(user => {
         totalRatings += user.rating
     });
     console.log(totalRatings)
-    let averageRating = parseFloat(totalRatings/totalUsers.length).toFixed(1)
+    let averageRating = parseFloat(totalRatings / totalUsers.length).toFixed(1)
     console.log(averageRating)
-    await models.newCourseModel.findByIdAndUpdate(courseId, {rating: {rating:averageRating.toString(), TotalRatings: totalUsers.length}}, {new: true})
-    .then((resp)=>console.log('overall rating updated for this course', resp._id))
+    await models.newCourseModel.findByIdAndUpdate(courseId, { rating: { rating: averageRating.toString(), TotalRatings: totalUsers.length } }, { new: true })
+        .then((resp) => console.log('overall rating updated for this course', resp._id))
 }
 const addRating = async (req, res) => {
     const { courseId, userId, rating } = req.body
@@ -217,19 +217,19 @@ const addRating = async (req, res) => {
         courseId: courseId,
         rating: rating
     })
-    try{
+    try {
 
-        await models.userDataModel.findOneAndUpdate({userId:userId},{ratings: ratings})
-        .then(()=>{
-            updateOverallRating(courseId)
-            res.send({status:'success', ratings: ratings})
-        })
+        await models.userDataModel.findOneAndUpdate({ userId: userId }, { ratings: ratings })
+            .then(() => {
+                updateOverallRating(courseId)
+                res.send({ status: 'success', ratings: ratings })
+            })
     }
-    catch(err){
+    catch (err) {
         console.log(err)
-        res.send({status:'failed'})
+        res.send({ status: 'failed' })
     }
-    
+
 
 }
 const editRating = async (req, res) => {
@@ -237,27 +237,28 @@ const editRating = async (req, res) => {
     const userData = await models.userDataModel.find({ userId: userId })
     let ratings = userData[0]?.ratings || []
     ratings = ratings.map(item => item.courseId == courseId ? { ...item, rating: rating } : item)
-    
-    try{
 
-        await models.userDataModel.findOneAndUpdate({userId:userId},{ratings: ratings})
-        .then(()=>{
-            updateOverallRating(courseId)
-            res.send({status:'success', ratings: ratings})
-        })    }
-    catch(err){
-        console.log(err)
-        res.send({status:'failed'})
+    try {
+
+        await models.userDataModel.findOneAndUpdate({ userId: userId }, { ratings: ratings })
+            .then(() => {
+                updateOverallRating(courseId)
+                res.send({ status: 'success', ratings: ratings })
+            })
     }
-    
+    catch (err) {
+        console.log(err)
+        res.send({ status: 'failed' })
+    }
+
 
 }
 const getRatings = async (req, res) => {
     const { courseIds, userId } = req.params
-    const userData = await models.userDataModel.find({userId: userId})
+    const userData = await models.userDataModel.find({ userId: userId })
     let ratings = userData[0]?.ratings || []
     ratings = ratings.filter(item => courseIds.includes(item.courseId))
-    res.send({status:'success', ratings: ratings})
+    res.send({ status: 'success', ratings: ratings })
 }
 
 
@@ -324,7 +325,7 @@ const createCourse = async (req, res) => {
         author: { authorId: author._id, username: author.username, email: author.email }
     })
     await newCourse.save()
-        .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id , authorId: resp.author.authorId}) })
+        .then(resp => { console.log('saved', resp), res.send({ status: 'saved', courseId: resp._id, authorId: resp.author.authorId }) })
 
 }
 //teacher route
@@ -342,6 +343,17 @@ const createCourseVideoUpload = async (req, res) => {
             }
 
             console.log('Your video link is: ' + body.link)
+
+            const videoFilePath = path.join(__dirname, '../videos', req.file.filename);
+
+            // Delete the video file
+            fs.unlink(videoFilePath, (err) => {
+                if (err) {
+                    console.log('Error deleting the video file:', err);
+                } else {
+                    console.log('Video file deleted successfully.');
+                }
+            });
             res.send({ status: 'success', videoUrl: body.link })
         })
     }
@@ -507,7 +519,7 @@ const controllers = {
     getcourses, searchResults, getImage, addToCart,
     addPayment, getCart, getEnrolled, enroll, getCourseDetails,
     removeFromCart, GetTeacherCourses, addToWishlist, getWishlist,
-     removeFromWishlist, updateCompletion, getCompletionDetails, addRating, editRating, getRatings
+    removeFromWishlist, updateCompletion, getCompletionDetails, addRating, editRating, getRatings
 }
 
 module.exports = controllers;

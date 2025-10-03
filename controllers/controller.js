@@ -455,10 +455,14 @@ const authorization = async (req, res) => {
                 //     name: user.name,
                 //     email: user.email
                 // }
-                const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
+                const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+                const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
                 res.send({
-                    status: 'authorised', token: token, userDetails: user
+                    status: 'authorised', 
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                    userDetails: user
                 })
 
             }
@@ -505,8 +509,14 @@ const authorization = async (req, res) => {
                         wishList: []
                     })
                     await newUserData.save()
-                    const token = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
-                    res.send({ status: 'success', token: token, userDetails: result });
+                    const accessToken = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+                    const refreshToken = jwt.sign({ userId: result._id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
+                    res.send({ 
+                        status: 'success', 
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        userDetails: result 
+                    });
                 })
                 .catch(err => { console.log('error in adding user'); res.send({ status: false, userDetails: {} }); })
 

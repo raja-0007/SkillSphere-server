@@ -68,6 +68,7 @@ router.post('/enroll',controllers.enroll)
 router.get('/getEnrolled/:userId', controllers.getEnrolled)
 router.get('/getCourseDetails/:courseId',controllers.getCourseDetails)
 
+router.post('/create-order',controllers.razorpayOrder)
 // const path = require('path');
 // const app = express();
 

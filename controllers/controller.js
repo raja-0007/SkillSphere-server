@@ -6,6 +6,7 @@ const fsPromises = require('fs').promises;
 let Vimeo = require('vimeo').Vimeo;
 const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51PJUGRSCSlPFnl40eXYhsPqHvL5qCLxiL0jkBGoAaXxrdn0OAekkhH4S5xmh7qcXvJDEZScBx20HZFmz9NXYzqRo00YL3tZaXR');
+const Razorpay = require("razorpay");
 
 const fs = require('fs');
 
@@ -523,13 +524,41 @@ const authorization = async (req, res) => {
         }
     }
 }
+
+const razorpayOrder = async(req,res)=>{
+
+    if (req.method === "POST") {
+       try {
+         const razorpay = new Razorpay({
+           key_id: process.env.RAZORPAY_KEY_ID,
+           key_secret: process.env.RAZORPAY_KEY_SECRET,
+         });
+   
+         const options = {
+           amount: req.body.amount * 100, // convert to paise
+           currency: "INR",
+           receipt: `receipt_${Date.now()}`,
+         };
+   
+         const order = await razorpay.orders.create(options);
+         res.status(200).json(order);
+       } catch (err) {
+         res.status(500).json({ error: err.message });
+       }
+     } else {
+       res.setHeader("Allow", "POST");
+       res.status(405).end("Method Not Allowed");
+     }
+}
+
 const controllers = {
     createCourse, createCourseVideoUpload, home,
     categorieslist, authorization, getUserDetails,
     getcourses, searchResults, getImage, addToCart,
     addPayment, getCart, getEnrolled, enroll, getCourseDetails,
     removeFromCart, GetTeacherCourses, addToWishlist, getWishlist,
-    removeFromWishlist, updateCompletion, getCompletionDetails, addRating, editRating, getRatings
+    removeFromWishlist, updateCompletion, getCompletionDetails, addRating, editRating, getRatings,
+    razorpayOrder
 }
 
 module.exports = controllers;

@@ -24,7 +24,6 @@ const enroll = async (req, res) => {
     // console.log('enrolledddddd', JSON.parse(req.body.courseIds), 'userid:::', req.body.userId)
     const usersData = await models.userDataModel.find({ userId: req.body.userId })
     var cart = usersData[0].cart || []
-    // console.log(cart)
     cart = cart.filter(item => !JSON.parse(req.body.courseIds).includes(item._id))
 
     await models.userDataModel.findByIdAndUpdate(usersData[0]._id, { cart: cart }, { new: true })
@@ -208,7 +207,7 @@ const updateOverallRating = async (courseId) => {
     let averageRating = parseFloat(totalRatings / totalUsers.length).toFixed(1)
     console.log(averageRating)
     await models.newCourseModel.findByIdAndUpdate(courseId, { rating: { rating: averageRating.toString(), TotalRatings: totalUsers.length } }, { new: true })
-        .then((resp) => console.log('overall rating updated for this course', resp._id))
+        .then((resp) => console.log('overall rating updated for this course', resp))
 }
 const addRating = async (req, res) => {
     const { courseId, userId, rating } = req.body

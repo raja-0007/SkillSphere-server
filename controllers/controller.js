@@ -13,7 +13,7 @@ const fs = require('fs');
 
 const searchResults = async (req, res) => {
     // console.log(req.params.search)
-    const searchString = req.params.search
+    const searchString = req.query.search
     await models.newCourseModel.find({ 'landingPageDetails.title': { $regex: searchString, $options: 'i' } })
         .then(resp => res.send(resp))
 }

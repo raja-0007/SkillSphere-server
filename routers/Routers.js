@@ -37,7 +37,7 @@ router.post('/createcourse', upload.single('image'), controllers.createCourse)
 router.post('/createcourse/videoUpload', upload2.single('video'), controllers.createCourseVideoUpload)
 router.get('/getTeacherCourses/:userId',controllers.GetTeacherCourses)
 
-router.get('/searchResults/:search',controllers.searchResults)
+router.get('/searchResults',controllers.searchResults)
 router.get('/getImage/:img',controllers.getImage) //currently not using
 
 //cart routes
